@@ -1,0 +1,4 @@
+name = "DataConverter"
+uuid = "961a0a56-71a6-4837-87f2-b0dd9126bc19"
+authors = ["Alessandro Conigli <alessandroconigli@gmail.com>"]
+version = "0.1.0"
