@@ -190,3 +190,35 @@ function read_mesons(path::Vector{String}, g1::Union{String, Nothing}=nothing, g
     end
     return cdata
 end
+
+@doc"""
+    read_mesons_multiple_files(path::Vector{String}, g1::Union{String, Nothing}=nothing, g2::Union{String, Nothing}=nothing)
+
+    This function reads dat files produced by job arrays, where each config dat file is saved as an independent file.
+    The function reads all the dat files, respecting configuration order, and returns a CData structure where all the measurements
+    on each configuration are concatenated.
+
+    Currently this only works for a single replica. 
+"""
+function read_mesons_multiple_files(path::Vector{String}, g1::Union{String, Nothing}=nothing, g2::Union{String, Nothing}=nothing)
+    idx_perm  = sortperm([parse(Int, match(r"cnfg(\d+)", basename(f)).captures[1]) for f in path])
+    path = path[idx_perm]
+
+    cd_aux = read_mesons(path[1], g1, g2)
+
+    for k in eachindex(path)
+        if k == 1
+            continue
+        end
+
+        cd_tmp = read_mesons(path[k], g1, g2)
+
+        for j in eachindex(cd_aux)
+            cd_aux[j].re_data = vcat(cd_aux[j].re_data, cd_tmp[j].re_data)
+            cd_aux[j].im_data = vcat(cd_aux[j].im_data, cd_tmp[j].im_data)
+        end
+        push!(cd_aux[k].vcfg, cd_tmp[k].vcfg[1])
+    end
+
+    return cd_aux
+end
