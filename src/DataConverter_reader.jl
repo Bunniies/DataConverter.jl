@@ -193,12 +193,13 @@ end
 
 @doc"""
     read_mesons_multiple_files(path::Vector{String}, g1::Union{String, Nothing}=nothing, g2::Union{String, Nothing}=nothing)
+    read_mesons_multiple_files(paths::Vector{Vector{String}}, g1::Union{String, Nothing}=nothing, g2::Union{String, Nothing}=nothing)
 
     This function reads dat files produced by job arrays, where each config dat file is saved as an independent file.
     The function reads all the dat files, respecting configuration order, and returns a CData structure where all the measurements
     on each configuration are concatenated.
-
-    Currently this only works for a single replica. 
+    
+    If a vector of vector of string is passed instead, the fuction assumes the ensemble has multiple replica
 """
 function read_mesons_multiple_files(path::Vector{String}, g1::Union{String, Nothing}=nothing, g2::Union{String, Nothing}=nothing)
     idx_perm  = sortperm([parse(Int, match(r"cnfg(\d+)", basename(f)).captures[1]) for f in path])
@@ -216,9 +217,17 @@ function read_mesons_multiple_files(path::Vector{String}, g1::Union{String, Noth
         for j in eachindex(cd_aux)
             cd_aux[j].re_data = vcat(cd_aux[j].re_data, cd_tmp[j].re_data)
             cd_aux[j].im_data = vcat(cd_aux[j].im_data, cd_tmp[j].im_data)
+            cd_aux[j].vcfg    = vcat(cd_aux[j].vcfg, cd_tmp[j].vcfg)
         end
-        push!(cd_aux[k].vcfg, cd_tmp[k].vcfg[1])
     end
 
     return cd_aux
+end
+
+function read_mesons_multiple_files(paths::Vector{Vector{String}}, g1::Union{String, Nothing}=nothing, g2::Union{String, Nothing}=nothing)
+    store_cdata = Vector{Vector{CData}}(undef, length(paths))
+    for (k,path) in enumerate(paths)
+        store_cdata[k] = read_mesons_multiple_files(path, g1, g2)
+    end
+    return vcat.(store_cdata...)
 end

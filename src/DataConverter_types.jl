@@ -137,3 +137,12 @@ mutable struct CData
 end
 Base.copy(a::CData) = CData(a.header, a.vcfg, a.re_data, a.im_data, a.id)
 
+function Base.show(io::IO, a::CData)
+    g1 = gamma_name[a.header.type1+1]
+    g2 = gamma_name[a.header.type2+1]
+    print(io, typeof(a), "(")
+    print(io, "id: ", a.id )
+    print(io, " channel: ", g1, "-", g2, " kappas: (", a.header.k1, ", ", a.header.k2,")", " source: ", a.header.x0, ")")
+end
+
+
